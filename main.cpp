@@ -6,6 +6,7 @@
 #include "mem/mem_management.h"
 #include "array/mArray_none.h"
 #include "fft/fft.h"
+#include "endian/endian.hpp"
 #include <math.h>
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key);
 void decrypt(unsigned char *p, unsigned int size, unsigned char key);
@@ -220,5 +221,11 @@ int main()
 	// 	WRITE_LOG(NULL,"%d\n",*(int*)array->ro.index[i].data);
 	// }
 	// array->func.destroy_d(array);
+	int mm = 0x12345678;
+	int nn;
+	nn = MEndian::ToBigEndian(mm);
+	WRITE_LOG(NULL,"ToBigEndian:0x%08x\n",nn);
+	nn = MEndian::ToLittleEndian(mm);
+	WRITE_LOG(NULL,"ToLittleEndian:0x%08x\n",nn);
 	return 0;
 }

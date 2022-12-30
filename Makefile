@@ -118,10 +118,11 @@ VPATH			:= $(SRCDIRS)
 .PHONY: clean
 
 # obj dir
+LIB_DIR := $(TOP_DIR)/lib
 $(shell if [ ! -e $(OBJ_DIR) ]; then mkdir -p $(OBJ_DIR);fi)
-LIB_DIR_STATIC := $(TOP_DIR)/lib/static
+LIB_DIR_STATIC := $(LIB_DIR)/static
 $(shell if [ ! -e $(LIB_DIR_STATIC) ]; then mkdir -p $(LIB_DIR_STATIC);fi)
-LIB_DIR_SHARED := $(TOP_DIR)/lib/shared
+LIB_DIR_SHARED := $(LIB_DIR)/shared
 $(shell if [ ! -e $(LIB_DIR_SHARED) ]; then mkdir -p $(LIB_DIR_SHARED);fi)
 
 # make -n
@@ -156,4 +157,4 @@ $(CPPOBJS) : $(OBJ_DIR)/%.o : %.cpp
 
 clean:
 	$(info "clean file")
-	rm -rf $(BIN) $(BIN).dis $(BIN).lds $(BIN).ld $(COBJS) $(CPPOBJS) $(OBJ_DIR) $(LIB_DIR_STATIC) $(LIB_DIR_SHARED)
+	rm -rf $(BIN) $(BIN).dis $(BIN).lds $(BIN).ld $(COBJS) $(CPPOBJS) $(OBJ_DIR) $(LIB_DIR)
