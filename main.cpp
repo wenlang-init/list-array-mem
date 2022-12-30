@@ -8,6 +8,7 @@
 #include "fft/fft.h"
 #include "endian/endian.hpp"
 #include <math.h>
+#include <stdlib.h>
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key);
 void decrypt(unsigned char *p, unsigned int size, unsigned char key);
 
@@ -227,5 +228,15 @@ int main()
 	WRITE_LOG(NULL,"ToBigEndian:0x%08x\n",nn);
 	nn = MEndian::ToLittleEndian(mm);
 	WRITE_LOG(NULL,"ToLittleEndian:0x%08x\n",nn);
+	struct type_test{
+		unsigned char mm[256];
+	} type_s,type_d;
+	for(int i=0;i<sizeof(struct type_test);i++)type_s.mm[i] = i;
+	type_d = MEndian::ToBigEndian(type_s);
+	WRITE_LOG(NULL,"ToBigEndian:");
+	for(int i=0;i<sizeof(struct type_test);i++)printf("%02d ",type_d.mm[i]);printf("\n");
+	type_d = MEndian::ToLittleEndian(type_s);
+	WRITE_LOG(NULL,"ToLittleEndian:");
+	for(int i=0;i<sizeof(struct type_test);i++)printf("%02d ",type_d.mm[i]);printf("\n");
 	return 0;
 }
