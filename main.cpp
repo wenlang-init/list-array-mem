@@ -9,11 +9,26 @@
 #include "endian/endian.hpp"
 #include <math.h>
 #include <stdlib.h>
-unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key);
-void decrypt(unsigned char *p, unsigned int size, unsigned char key);
 
-void creat_decode(){
-	const char *srcchr = "7607901a010ecde2d22b2a4a9444828a#1893527031#hypno.7z\nda00919e6c5ba98b81776abefcb0f290#371349772#hypnoappAndroid.7z\n6e8e4a893323ad5c5b8cf19fcea45849#2600#save.rar";
+unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
+{
+    for(unsigned int i=0; i<size; i++)
+    {
+        p[i] ^= key;
+    }
+    return (key^0x0A);
+}
+
+void decrypt(unsigned char *p, unsigned int size, unsigned char key)
+{
+    key ^= 0x0A;
+    for(unsigned int i=0; i<size; i++)
+    {
+        p[i] ^= key;
+    }
+}
+
+void creat_decode(const char *srcchr,const char* filename){
 	//const char *srcchr = "94d2bc30d22368885183fd7e2e926b5d#13489071#/PicACG_2.2.1.3.3.4.apk";
 	unsigned char srcdata[10000]={0};
 	char dedatat[10000]={0};
@@ -45,24 +60,6 @@ void creat_decode(){
 	printf("原始：%s\n",srcchr);
 	printf("解码：%s\n",srcdata);
 
-
-	printf("代码：\n");
-	// printf("#include <stdio.h>\n#include <string.h>\n");
-	// printf("void decrypt(unsigned char *p, unsigned int size, unsigned char key)\n{\n\
-    // key ^= 0x0A;\n\
-    // for(unsigned int i=0; i<size; i++)\n\
-    // {\n\
-    //     p[i] ^= key;\n\
-    // }\n}\n");
-
-	// printf("int main(){\n\t");
-	// printf("%s",dedatat);
-	// printf("\tunsigned char dekey = 0x%02x;\n",enkey^0x0A); // dekey
-	// printf("\tdecrypt(encode,sizeof(encode),dekey);\n");
-	// printf("\tprintf(\"百度秒传链接：\");\n");
-	// printf("\tfor(int i=0;i<sizeof(encode);i++)printf(\"%%c\",encode[i]);printf(\"\\n\");\n");
-	// printf("\treturn 0;\n}\n");
-
 	char file_save[1024*100];
 	int findex = 0;
 	findex+=sprintf(file_save+findex,"#include <stdio.h>\n#include <string.h>\n");
@@ -81,47 +78,19 @@ void creat_decode(){
 	findex+=sprintf(file_save+findex,"\treturn 0;\n}\n");
 	findex+=sprintf(file_save+findex,"\n");
 	file_save[findex] = 0;
+	
+	printf("代码：\n");
 	printf("%s",file_save);
-
-	FILE *fp = fopen("./123.c","w");
+	//const char* filename = "/storage/emulated/0/123.c";
+	//const char* filename = "/storage/emulated/0/Download/WeiXin/123.c";
+	FILE *fp = fopen(filename,"w");
 	if(fp != NULL){
+		printf("start save file:%s\n",filename);
 		fwrite(file_save,1,findex,fp);
 		fclose(fp);
 	} else {
 		perror("fopen");
 	}
-}
-
-unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
-{
-    for(unsigned int i=0; i<size; i++)
-    {
-        p[i] ^= key;
-    }
-    return (key^0x0A);
-}
-
-void decrypt(unsigned char *p, unsigned int size, unsigned char key)
-{
-    key ^= 0x0A;
-    for(unsigned int i=0; i<size; i++)
-    {
-        p[i] ^= key;
-    }
-}
-
-int testt(){
-
-	creat_decode();
-
-	unsigned char encode[] = {0x6a,0x67,0x37,0x61,0x31,0x30,0x60,0x63,0x37,0x61,0x61,0x60,0x65,0x6b,0x6b,0x6b,0x66,0x62,0x6b,0x60,0x35,
-	0x37,0x64,0x36,0x61,0x36,0x6a,0x61,0x65,0x31,0x66,0x37,0x70,0x62,0x60,0x67,0x6b,0x6a,0x63,0x64,0x62,0x70,0x7c,0x03,0x3a,0x30,0x12,
-	0x10,0x14,0x0c,0x61,0x7d,0x61,0x7d,0x62,0x7d,0x60,0x7d,0x60,0x7d,0x67,0x7d,0x32,0x23,0x38};
-	unsigned char dekey = 0x59;
-	decrypt(encode,sizeof(encode),dekey);
-	printf("百度秒传链接：");
-	for(int i=0;i<sizeof(encode);i++)printf("%c",encode[i]);printf("\n");
-	return 0;
 }
 
 int main()
@@ -168,7 +137,9 @@ int main()
 	WRITE_LOG(NULL,"cos(111)=%lf\n",cos(111));
 
 	fft_test();
-	testt();
+	
+	creat_decode("94d2bc30d22368885183fd7e2e926b5d#13489071#/PicACG_2.2.1.3.3.4.apk","./123.c");
+
 	// unsigned char *ptz[MEM_TABLE_SIZE]={0};
 	// int i=0;
 	// for(i=0;i<MEM_TABLE_SIZE;i++){

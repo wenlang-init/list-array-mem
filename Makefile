@@ -157,4 +157,4 @@ $(CPPOBJS) : $(OBJ_DIR)/%.o : %.cpp
 
 clean:
 	$(info "clean file")
-	rm -rf $(BIN) $(BIN).dis $(BIN).lds $(BIN).ld $(COBJS) $(CPPOBJS) $(OBJ_DIR) $(LIB_DIR)
+	rm -rf $(BIN) $(BIN).dis $(BIN).lds $(BIN).ld $(COBJS) $(CPPOBJS) $(OBJ_DIR) $(LIB_DIR) 123.*
