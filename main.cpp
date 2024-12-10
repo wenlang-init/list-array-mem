@@ -9,6 +9,7 @@
 #include "endian/endian.hpp"
 #include <math.h>
 #include <stdlib.h>
+#include "decode/autf8.h"
 
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
 {
@@ -121,42 +122,80 @@ int main()
 		array->func.append(array,(void*)((long long)i));
 	}
 
-	//array->func.swap(array,1,3);
+	WRITE_LOG(NULL,"swapb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	array->func.swap(array,3,5);
+	WRITE_LOG(NULL,"swape:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	array->func.swap(array,3,5);
+	WRITE_LOG(NULL,"swape,moveb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
 	array->func.move(array,3,5);
-	WRITE_LOG(NULL,"\xf0\x9f\x92\x96 💖 | \xe6\x9d\xa5 \u6765 来 | \xe5\x95\x8a \u554A 啊 | \x41 \u0041 A");
-	WRITE_LOG(NULL,"%x",0x554A);
+	WRITE_LOG(NULL,"data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	array->func.move(array,3,5);
+	WRITE_LOG(NULL,"data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	WRITE_LOG(NULL,"\xf0\x9f\x92\x96 💖 \xf0\x9f\x92\x91 | \xe6\x9d\xa5 \u6765 来 | \xe5\x95\x8a \u554A 啊 | \x41 \u0041 A");
 	//char *aa="💖";while(*aa){printf("%02x",*aa&0xff);aa++;}printf("\n");
+	char aa[10]={0};
+	unsigned int ad = 0xf09f9080-0x0100*16; //0xf09f9280;//96; // f09f9?80~bf(64个)
+	unsigned int add,af;
+	WRITE_LOG(NULL,"value\n");
+	for(int m=0;m<32;m++){
+		add = ad;
+		printf("-----------------------------------0x%08X\n",add);
+		for(int i=0;i<64;i++){
+			if(i != 0 && i % 10 == 0)printf("\n");
+			if(false == MEndian::isBigEndian()){
+				af = MEndian::ToBigEndian(add);
+			} else {
+				af = add;
+			}
+			memcpy(aa,&af,sizeof(af));
+			aa[sizeof(af)] = 0;
+			printf("%04X %s\t",af,aa);
+			add++;	
+		}
+		printf("\n");
+		ad += 0x0100;
+	}
+	unsigned char xaaa[10]={0};
+	unsigned long value1 = UTF8_putc(xaaa,10,0x1f496);//0xf09f9296);
+	WRITE_LOG(NULL,"xxxxxxxxx %lu %s\n",value1,xaaa);
+	unsigned long val11;
+	int clen = UTF8_getc(xaaa, 10, &val11);
+	int val1 = val11;
+	WRITE_LOG(NULL,"zzzzzzzzz %d %08x %s\n",clen,val1,xaaa);
 	
 	WRITE_LOG(NULL,"sssssssssssssssssssssssssssssssssssssss,%d\n",array->ro.count);
 	for(i=0;i<array->ro.count;i++){
 		//WRITE_LOG(NULL,"%p\n",array->ro.index[i].data);
 	}
-	WRITE_LOG(NULL,"mem_peruser=%d%%\n",mem_peruser());
+	WRITE_LOG(NULL,"mem_peruser=%f%%\n",mem_peruser());
 	array->func.destroy(array);
-	WRITE_LOG(NULL,"mem_peruser=%d%%\n",mem_peruser());
+	WRITE_LOG(NULL,"mem_peruser=%f%%\n",mem_peruser());
 	WRITE_LOG(NULL,"cos(111)=%lf\n",cos(111));
 
-	fft_test();
+	//fft_test();
 	
-	creat_decode("94d2bc30d22368885183fd7e2e926b5d#13489071#/PicACG_2.2.1.3.3.4.apk","./123.c");
+	//creat_decode("94d2bc30d22368885183fd7e2e926b5d#13489071#/PicACG_2.2.1.3.3.4.apk","./123.c");
 
-	// unsigned char *ptz[MEM_TABLE_SIZE]={0};
-	// int i=0;
-	// for(i=0;i<MEM_TABLE_SIZE;i++){
-	// 	ptz[i] = mem_malloc(129);
-	// 	if(ptz[i] == NULL){
-	// 		mprintf("%u,%u\n",i,mem_peruser());
-	// 		break;
-	// 	}
-	// }
-	// mprintf("%d\n",mem_peruser());
-	// for(i=0;i<MEM_TABLE_SIZE;i++){
-	// 	if(ptz[i] != NULL){
-	// 		mem_free(ptz[i]);
-	// 		//mprintf("%u,%d\n",i,mem_peruser());
-	// 	}
-	// }
-	// mprintf("%d\n",mem_peruser());
+	{
+	unsigned char *ptz[MEM_TABLE_SIZE]={0};
+	int i=0;
+	for(i=0;i<MEM_TABLE_SIZE;i++){
+		ptz[i] = (unsigned char* )mem_malloc(MEM_BLOCK_SIZE*1111-1);
+		printf("%u,%f%%\n",i,mem_peruser());
+		if(ptz[i] == NULL){
+			//printf("%u,%f%%\n",i,mem_peruser());
+			break;
+		}
+	}
+	printf("%f%%\n",mem_peruser());
+	for(i=0;i<MEM_TABLE_SIZE;i++){
+		if(ptz[i] != NULL){
+			mem_free(ptz[i]);
+			printf("%u,%f%%\n",i,mem_peruser());
+		}
+	}
+	printf("%f%%\n",mem_peruser());
+	}
 	
 
 	// srand(time(NULL));
@@ -196,7 +235,7 @@ int main()
 	int mm = 0x12345678;
 	int nn;
 	nn = MEndian::ToBigEndian(mm);
-	WRITE_LOG(NULL,"ToBigEndian:0x%08x\n",nn);
+	WRITE_LOG(NULL,"ToBigEndian:0x%08x,mm=%08x,%02x\n",nn,mm,((char*)&mm)[0]);
 	nn = MEndian::ToLittleEndian(mm);
 	WRITE_LOG(NULL,"ToLittleEndian:0x%08x\n",nn);
 	struct type_test{
@@ -209,5 +248,18 @@ int main()
 	type_d = MEndian::ToLittleEndian(type_s);
 	WRITE_LOG(NULL,"ToLittleEndian:");
 	for(int i=0;i<sizeof(struct type_test);i++)printf("%02d ",type_d.mm[i]);printf("\n");
+
+	// 隐式转换 char,short -> int ;有符号->无符号
+	short sa=-1;
+	unsigned short usa=2;
+	int sb=-1;
+	unsigned int usb=2;
+	long long c;
+	c= sa*usa;
+	printf("0x%04x 0x%04x 0x%08x 0x%08x\n",sa,usa,sb,usb);
+	printf("%lld %llx\n",c,c);
+	c=sb*usb;
+	printf("%lld %llx\n",c,c);
+
 	return 0;
 }

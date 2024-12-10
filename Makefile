@@ -41,7 +41,7 @@ OBJ_DIR = $(TOP_DIR)/obj
 MAINSRC = main.c
 
 # C编译参数
-C_FLAGS += -Wall
+C_FLAGS += -W #-Wall
 #C_FLAGS += -Wshadow -Wundef -Wmaybe-uninitialized
 # 指定源文件类型为C
 # C_FLAGS += -x c
@@ -56,7 +56,7 @@ C_FLAGS += -O3 -g3
 C_FLAGS += -fPIC
 
 # CPP 编译参数
-CXX_FLAGS += -Wall
+CXX_FLAGS += -W #-Wall
 #CXX_FLAGS += -Wshadow -Wundef -Wmaybe-uninitialized
 # 指定源文件类型为CPP
 # CXX_FLAGS += -x c++
@@ -87,6 +87,7 @@ INCDIRS 		+= ./log
 INCDIRS 		+= ./mem
 INCDIRS 		+= ./cpp
 INCDIRS 		+= ./fft
+INCDIRS 		+= ./decode
 # 源文件
 SRCDIRS			:= ./
 SRCDIRS 		+= ./array
@@ -95,6 +96,7 @@ SRCDIRS 		+= ./log
 SRCDIRS 		+= ./mem
 SRCDIRS 		+= ./cpp
 SRCDIRS 		+= ./fft
+SRCDIRS 		+= ./decode
 
 INCLUDE			:= $(patsubst %, -I %, $(INCDIRS))
 # INCLUDE := 

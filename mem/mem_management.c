@@ -15,7 +15,7 @@ static unsigned short mem_management_table[MEM_TABLE_SIZE];
 
 struct _mem_man_dev{
     void (*init)(void); // 初始化
-    unsigned char (*peruser)(void); // 内存使用率
+    double (*peruser)(void); // 内存使用率
     u8 *membase; // 内存池
     u16 *memmap; // 内存表
     u32 mem_size; // 内存池大小
@@ -25,7 +25,7 @@ struct _mem_man_dev{
 };
 
 static void mem_init(void); // 初始化
-unsigned char mem_peruser(void); // 内存使用率
+double mem_peruser(void); // 内存使用率
 
 struct _mem_man_dev mem_dev = {
     .init = mem_init,
@@ -116,8 +116,8 @@ void mem_free(void *ptr){
         mem_free_c(offset);
     }
 }
-
-unsigned char mem_peruser(void){
+#include <stdio.h>
+double mem_peruser(void){
     u32 use = 0;
     u32 i;
     if(mem_dev.memrdy == 0){
@@ -131,7 +131,7 @@ unsigned char mem_peruser(void){
             //i = i + mem_dev.memmap[i]-1;
         }
     }
-    return use*100/mem_dev.memtable_size;
+    return use*100.0/mem_dev.memtable_size;
 }
 
 void rest_malloc(void){

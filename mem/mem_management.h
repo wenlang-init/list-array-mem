@@ -17,7 +17,7 @@ void *mem_malloc(unsigned int size);
 // 释放内存
 void mem_free(void *ptr);
 // 获取内存使用率（mem_malloc可使用内存的使用率）
-unsigned char mem_peruser(void);
+double mem_peruser(void);
 // 重置mem_malloc，之前通过mem_malloc申请的内存将不再可用
 void rest_malloc(void);
 

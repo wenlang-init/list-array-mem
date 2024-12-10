@@ -7,6 +7,16 @@ public:
     MEndian(){};
 
     const static short m=0x1234;
+
+    static inline bool isBigEndian()
+    {
+        if(*(unsigned char*)&m == 0x12){
+            return true;
+        } else {
+            return false;
+        }
+
+    }
     /*
      * 转为大端序数据
      * value:一般为16,32,64位的数据
