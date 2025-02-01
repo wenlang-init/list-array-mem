@@ -40,9 +40,12 @@ double __get_printfTime_d()
     return t;
 }
 
-const char *__get_printfTime()
+const char *__get_printfTime(char *cur_time,int size)
 {
-    static char cur_time[64];
+    if(!cur_time){
+        return cur_time;
+    }
+    //static char cur_time[64];
 
     // struct tm
     // {
@@ -60,15 +63,15 @@ const char *__get_printfTime()
     struct tm Now;
 #if defined(__GNUC__) && defined(__unix__)
     if(localtime_r(&timer,&Now)){
-        snprintf(cur_time, sizeof(cur_time),"%d-%02d-%02d %02d:%02d:%02d", 1900+Now.tm_year, Now.tm_mon+1, Now.tm_mday, Now.tm_hour, Now.tm_min, Now.tm_sec);
+        snprintf(cur_time, size,"%d-%02d-%02d %02d:%02d:%02d", 1900+Now.tm_year, Now.tm_mon+1, Now.tm_mday, Now.tm_hour, Now.tm_min, Now.tm_sec);
     }else{
-        snprintf(cur_time, sizeof(cur_time),"get localtime failed");
+        snprintf(cur_time, size,"get localtime failed");
     }
 #else
     if(0 > localtime_s(&Now,&timer)){
-        _snprintf_s(cur_time, sizeof(cur_time),sizeof(cur_time),"get localtime failed");
+        snprintf(cur_time, size,"get localtime failed");
     } else {
-        _snprintf_s(cur_time, sizeof(cur_time),sizeof(cur_time),"%d-%02d-%02d %02d:%02d:%02d", 1900+Now.tm_year, Now.tm_mon+1, Now.tm_mday, Now.tm_hour, Now.tm_min, Now.tm_sec);
+        snprintf(cur_time, size,"%d-%02d-%02d %02d:%02d:%02d", 1900+Now.tm_year, Now.tm_mon+1, Now.tm_mday, Now.tm_hour, Now.tm_min, Now.tm_sec);
     }
 #endif
     return cur_time;
@@ -132,6 +135,7 @@ void printDebugMsg(LOG_TYPE_ENUM type,const char* function,const char *file,cons
     ThreadId = syscall(SYS_gettid);
 #endif
 
-    fprintf(out,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s\n",typemsg,__get_printfTime(),__get_printfTime_d(), ProcessId,ThreadId,file, line,function,buffer);
+    char cur_time[64];
+    fprintf(out,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s\n",typemsg,__get_printfTime(cur_time,sizeof(cur_time)),__get_printfTime_d(), ProcessId,ThreadId,file, line,function,buffer);
     fflush(out);
 }

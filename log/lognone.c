@@ -286,6 +286,11 @@ int initLog(const char* logDir,unsigned int flushMs,unsigned int fileLogMaxSize)
         return -1;
     }
 
+    if(m_logObj){
+        INFO_PRINT_LOG("logOBj it's already initialized\n");
+        return 0;
+    }
+
     m_logObj = (LogObj*)malloc(sizeof(LogObj));
     if(!m_logObj){
         FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
@@ -384,6 +389,7 @@ void destinyLog()
     if(m_logObj->logFilePNameCurrent){
         free(m_logObj->logFilePNameCurrent);
     }
+    m_logObj = NULL;
 }
 
 int setLogLevel(LOG_TYPE_ENUM level)
@@ -398,22 +404,22 @@ void writeLog(LOG_TYPE_ENUM level, const char *function, const char *file, const
     const char *typemsg;
     switch (level) {
     case LOG_TYPE_ENUM_DEBUG:
-        typemsg = "Debug";
+        typemsg = "Debug   ";
         break;
     case LOG_TYPE_ENUM_WARRING:
-        typemsg = "Warring";
+        typemsg = "Warring ";
         break;
     case LOG_TYPE_ENUM_CRITICAL:
         typemsg = "Critical";
         break;
     case LOG_TYPE_ENUM_FATAL:
-        typemsg = "Fatal";
+        typemsg = "Fatal   ";
         break;
     case LOG_TYPE_ENUM_INFO:
-        typemsg = "Info";
+        typemsg = "Info    ";
         break;
     default:
-        typemsg = "";
+        typemsg = "        ";
         break;
     }
 
@@ -432,8 +438,12 @@ void writeLog(LOG_TYPE_ENUM level, const char *function, const char *file, const
     ThreadId = syscall(SYS_gettid);
 #endif
 
+    char timechr[64];
+    __get_printfTime(timechr,sizeof(timechr));
+    double timed = __get_printfTime_d();
+
     if(m_printStdout){
-        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s\n",typemsg,__get_printfTime(),__get_printfTime_d(), ProcessId,ThreadId,file, line,function,buffer);
+        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s",typemsg,timechr,timed, ProcessId,ThreadId,file, line,function,buffer);
         fflush(stdout);
     }
 
@@ -452,14 +462,25 @@ void writeLog(LOG_TYPE_ENUM level, const char *function, const char *file, const
             } else {
                 file = "null";
             }
+            char tmpbuf[1024];
+            int len = snprintf(tmpbuf,sizeof(tmpbuf)," %s(%.6lf)|(%lu:%lu) %s:%d(%s) ",timechr,timed, ProcessId,ThreadId,file,line,function);
+            if(len < 0){
+                return;
+            }
             int typemsg_len = strlen(typemsg);
-            char *data = (char *)malloc(buffer_len + function_len + file_len + typemsg_len + 20);
+            char *data;
+            if(buffer[buffer_len-1] != '\n'){
+                data = (char *)malloc(buffer_len + len + typemsg_len + 2);
+            } else {
+                data = (char *)malloc(buffer_len + len + typemsg_len + 1);
+            }
             if(data){
-                char tmpbuf[1024];
-                sprintf(tmpbuf," %s:%d(%s) ",file,line,function);
                 memcpy(data,typemsg,typemsg_len+1);
                 strcat(data,tmpbuf);
                 strcat(data,buffer);
+                if(buffer[buffer_len-1] != '\n'){
+                    strcat(data,"\n");
+                }
 
                 pthread_mutex_lock(&m_logObj->mutex);
                 m_logObj->logList->func.append(m_logObj->logList,data);
@@ -521,7 +542,8 @@ void writeLognone(LOG_TYPE_ENUM level,const char* data)
 #endif
 
     if(m_printStdout){
-        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET MAGENTA "---" RESET "%s\n",typemsg,__get_printfTime(),__get_printfTime_d(), ProcessId,ThreadId,data);
+        char cur_time[64];
+        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET MAGENTA "---" RESET "%s\n",typemsg,__get_printfTime(cur_time,sizeof(cur_time)),__get_printfTime_d(), ProcessId,ThreadId,data);
         fflush(stdout);
     }
 

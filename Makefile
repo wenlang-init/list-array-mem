@@ -128,6 +128,11 @@ $(shell if [ ! -e $(LIB_DIR_STATIC) ]; then mkdir -p $(LIB_DIR_STATIC);fi)
 LIB_DIR_SHARED := $(LIB_DIR)/shared
 $(shell if [ ! -e $(LIB_DIR_SHARED) ]; then mkdir -p $(LIB_DIR_SHARED);fi)
 
+#OS := $(shell uname)
+#ifeq ($(OS), Linux)
+#else ifeq ($(OS), MINGW64_NT-10.0-26100)
+#endif
+
 # make -n
 
 $(BIN) : $(OBJS)
@@ -147,7 +152,7 @@ $(COBJS) : $(OBJ_DIR)/%.o : %.c
 	$(OBJDUMP) -d $@ > $@.dis
 #	$(CC) $(C_FLAGS) $(INCLUDE) $< -shared -fPIC -o $@.so
 	$(CC) -shared -o $@.so $@
-	$(AR) cqs $@.a $@
+	$(AR) rcs $@.a $@
 $(CPPOBJS) : $(OBJ_DIR)/%.o : %.cpp
 #	$(CPP) $(CXX_FLAGS) $(INCLUDE) -c $< -o $@
 	$(CPP) $(CXX_FLAGS) $(INCLUDE) -E $< -o $@.i
@@ -156,7 +161,7 @@ $(CPPOBJS) : $(OBJ_DIR)/%.o : %.cpp
 	$(OBJDUMP) -d $@ > $@.dis
 #	$(CPP) $(C_FLAGS) $(INCLUDE) $< -shared -o $@.so
 	$(CPP) -shared -o $@.so $@
-	$(AR) cqs $@.a $@
+	$(AR) rcs $@.a $@
 
 clean:
 	$(info "clean file")

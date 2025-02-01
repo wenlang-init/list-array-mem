@@ -96,6 +96,10 @@ void creat_decode(const char *srcchr,const char* filename){
 
 int main()
 {
+	initLog("./alllog",1000,1024*1024*10);
+	setLogLevel(LOG_TYPE_ENUM_DEBUG);
+	setLogPrint(1);
+
 	// const char *srcchr = "94d2bc30d22368885183fd7e2e926b5d#13489071#/PicACG_2.2.1.3.3.4.apk";
 	// unsigned char srcdata[100]={0};
 	// unsigned int lensrc=strlen(srcchr);
@@ -142,11 +146,7 @@ int main()
 		printf("-----------------------------------0x%08X\n",add);
 		for(int i=0;i<64;i++){
 			if(i != 0 && i % 10 == 0)printf("\n");
-			if(false == MEndian::isBigEndian()){
-				af = MEndian::ToBigEndian(add);
-			} else {
-				af = add;
-			}
+			af = MEndian::ToBigEndian(add);
 			memcpy(aa,&af,sizeof(af));
 			aa[sizeof(af)] = 0;
 			printf("%04X %s\t",af,aa);
@@ -232,8 +232,6 @@ int main()
 	// 	DEBUG_LOG("%d\n",*(int*)array->ro.index[i].data);
 	// }
 	// array->func.destroy_d(array);
-	setLogLevel(LOG_TYPE_ENUM_DEBUG);
-	setLogPrint(1);
 	int mm = 0x12345678;
 	int nn;
 	nn = MEndian::ToBigEndian(mm);
@@ -258,10 +256,14 @@ int main()
 	unsigned int usb=2;
 	long long c;
 	c= sa*usa;
-	printf("0x%04x 0x%04x 0x%08x 0x%08x\n",sa,usa,sb,usb);
-	printf("%lld %llx\n",c,c);
+	INFO_LOG("0x%04x 0x%04x 0x%08x 0x%08x\n",sa,usa,sb,usb);
+	WARRING_LOG("%lld %llx\n",c,c);
 	c=sb*usb;
-	printf("%lld %llx\n",c,c);
+	CRITICAL_LOG("%lld %llx\n",c,c);
+	FATAL_LOG("-------------------------\n");
+	INFO_LOG("vvvvvvvvvvvv\n");
+
+	destinyLog();
 
 	return 0;
 }
