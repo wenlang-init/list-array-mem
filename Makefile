@@ -75,6 +75,7 @@ CXX_FLAGS += -fPIC
 # 运行时库路径
 LIBS += -Wl,-rpath=./
 LIBS += -lm
+LIBS += -lpthread
 #LIBS = ./libes_3000gm.so
 #LIBS += -lstdc++
 #LIBS += -static

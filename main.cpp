@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 // #include "mList.h"
-#include "log/log_info.h"
+#include "log/lognone.h"
 // #include "array/mArray.h"
 #include "mem/mem_management.h"
 #include "array/mArray_none.h"
@@ -118,25 +118,25 @@ int main()
 	for(i=0;i<cnt;i++){
 		//data[i] = i;
 		//array->func.append(array,&data[i]);
-		//WRITE_LOG(NULL,"mem_peruser=%d%%\n",mem_peruser());
+		//DEBUG_LOG("mem_peruser=%d%%\n",mem_peruser());
 		array->func.append(array,(void*)((long long)i));
 	}
 
-	WRITE_LOG(NULL,"swapb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	DEBUG_LOG("swapb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
 	array->func.swap(array,3,5);
-	WRITE_LOG(NULL,"swape:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	DEBUG_LOG("swape:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
 	array->func.swap(array,3,5);
-	WRITE_LOG(NULL,"swape,moveb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	DEBUG_LOG("swape,moveb:data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
 	array->func.move(array,3,5);
-	WRITE_LOG(NULL,"data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	DEBUG_LOG("data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
 	array->func.move(array,3,5);
-	WRITE_LOG(NULL,"data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
-	WRITE_LOG(NULL,"\xf0\x9f\x92\x96 💖 \xf0\x9f\x92\x91 | \xe6\x9d\xa5 \u6765 来 | \xe5\x95\x8a \u554A 啊 | \x41 \u0041 A");
+	DEBUG_LOG("data[3]=%lld,data[4]=%lld,data[5]=%lld\n",(long long)array->ro.index[3].data,(long long)array->ro.index[4].data,(long long)array->ro.index[5].data);
+	DEBUG_LOG("\xf0\x9f\x92\x96 💖 \xf0\x9f\x92\x91 | \xe6\x9d\xa5 \u6765 来 | \xe5\x95\x8a \u554A 啊 | \x41 \u0041 A");
 	//char *aa="💖";while(*aa){printf("%02x",*aa&0xff);aa++;}printf("\n");
 	char aa[10]={0};
 	unsigned int ad = 0xf09f9080-0x0100*16; //0xf09f9280;//96; // f09f9?80~bf(64个)
 	unsigned int add,af;
-	WRITE_LOG(NULL,"value\n");
+	DEBUG_LOG("value\n");
 	for(int m=0;m<32;m++){
 		add = ad;
 		printf("-----------------------------------0x%08X\n",add);
@@ -157,20 +157,20 @@ int main()
 	}
 	unsigned char xaaa[10]={0};
 	unsigned long value1 = UTF8_putc(xaaa,10,0x1f496);//0xf09f9296);
-	WRITE_LOG(NULL,"xxxxxxxxx %lu %s\n",value1,xaaa);
+	DEBUG_LOG("xxxxxxxxx %lu %s\n",value1,xaaa);
 	unsigned long val11;
 	int clen = UTF8_getc(xaaa, 10, &val11);
 	int val1 = val11;
-	WRITE_LOG(NULL,"zzzzzzzzz %d %08x %s\n",clen,val1,xaaa);
+	DEBUG_LOG("zzzzzzzzz %d %08x %s\n",clen,val1,xaaa);
 	
-	WRITE_LOG(NULL,"sssssssssssssssssssssssssssssssssssssss,%d\n",array->ro.count);
+	DEBUG_LOG("sssssssssssssssssssssssssssssssssssssss,%d\n",array->ro.count);
 	for(i=0;i<array->ro.count;i++){
-		//WRITE_LOG(NULL,"%p\n",array->ro.index[i].data);
+		//DEBUG_LOG("%p\n",array->ro.index[i].data);
 	}
-	WRITE_LOG(NULL,"mem_peruser=%f%%\n",mem_peruser());
+	DEBUG_LOG("mem_peruser=%f%%\n",mem_peruser());
 	array->func.destroy(array);
-	WRITE_LOG(NULL,"mem_peruser=%f%%\n",mem_peruser());
-	WRITE_LOG(NULL,"cos(111)=%lf\n",cos(111));
+	DEBUG_LOG("mem_peruser=%f%%\n",mem_peruser());
+	DEBUG_LOG("cos(111)=%lf\n",cos(111));
 
 	//fft_test();
 	
@@ -204,10 +204,10 @@ int main()
 	// 	return 0;
 	// }
 	// list->func.append(list,"aaaaaaaaaaa");
-	// WRITE_LOG(NULL,"%d\n",list->count);
+	// DEBUG_LOG("%d\n",list->count);
 	// int i=0;
 	// for(i=0;i<list->count;i++){
-	// 	WRITE_LOG(NULL,"%s\n",(char*)list->index[i]->data);
+	// 	DEBUG_LOG("%s\n",(char*)list->index[i]->data);
 	// }
 	// list->func.delete(list);
 
@@ -227,26 +227,28 @@ int main()
 	// //array->func.swap(array,1,3);
 	// array->func.move(array,3,5);
 	
-	// WRITE_LOG(NULL,"sssssssssssssssssssssssssssssssssssssss\n");
+	// DEBUG_LOG("sssssssssssssssssssssssssssssssssssssss\n");
 	// for(i=0;i<array->ro.count;i++){
-	// 	WRITE_LOG(NULL,"%d\n",*(int*)array->ro.index[i].data);
+	// 	DEBUG_LOG("%d\n",*(int*)array->ro.index[i].data);
 	// }
 	// array->func.destroy_d(array);
+	setLogLevel(LOG_TYPE_ENUM_DEBUG);
+	setLogPrint(1);
 	int mm = 0x12345678;
 	int nn;
 	nn = MEndian::ToBigEndian(mm);
-	WRITE_LOG(NULL,"ToBigEndian:0x%08x,mm=%08x,%02x\n",nn,mm,((char*)&mm)[0]);
+	DEBUG_LOG("ToBigEndian:0x%08x,mm=%08x,%02x\n",nn,mm,((char*)&mm)[0]);
 	nn = MEndian::ToLittleEndian(mm);
-	WRITE_LOG(NULL,"ToLittleEndian:0x%08x\n",nn);
+	DEBUG_LOG("ToLittleEndian:0x%08x\n",nn);
 	struct type_test{
 		unsigned char mm[256];
 	} type_s,type_d;
 	for(int i=0;i<sizeof(struct type_test);i++)type_s.mm[i] = i;
 	type_d = MEndian::ToBigEndian(type_s);
-	WRITE_LOG(NULL,"ToBigEndian:");
+	DEBUG_LOG("ToBigEndian:");
 	for(int i=0;i<sizeof(struct type_test);i++)printf("%02d ",type_d.mm[i]);printf("\n");
 	type_d = MEndian::ToLittleEndian(type_s);
-	WRITE_LOG(NULL,"ToLittleEndian:");
+	DEBUG_LOG("ToLittleEndian:");
 	for(int i=0;i<sizeof(struct type_test);i++)printf("%02d ",type_d.mm[i]);printf("\n");
 
 	// 隐式转换 char,short -> int ;有符号->无符号

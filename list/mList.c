@@ -1,8 +1,10 @@
 #include "mList.h"
 #include <stdlib.h>
+#if defined(__unix__)
 #include <errno.h>
+#endif
 #include <string.h>
-#include "../log/log_info.h"
+#include "printFunction.h"
 
 
 #ifdef LIST_ARRAY_INDEX
@@ -25,14 +27,14 @@ List *init_list()
 {
     List *listobj = (List*)malloc(sizeof(List));
     if(listobj == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         return NULL;
     }
 
     listobj->ro.head = (List_Node*)malloc(sizeof(List_Node));
     List_Node *head = listobj->ro.head;
     if(head == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         free(listobj);
         return NULL;
     }
@@ -40,7 +42,7 @@ List *init_list()
     head->next = NULL;
     struct _head_info *headinfo = (struct _head_info*)malloc(sizeof(struct _head_info));
     if(headinfo == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         free(listobj->ro.head);
         free(listobj);
         return NULL;
@@ -52,7 +54,7 @@ List *init_list()
     // 初始化数组指针
     headinfo->index = (List_Node **)malloc(headinfo->node_max*sizeof(List_Node *));
     if(headinfo->index == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         free(headinfo);
         free(listobj->ro.head);
         free(listobj);
@@ -62,8 +64,9 @@ List *init_list()
     
     listobj->index = headinfo->index;
     #endif
-    listobj->count = headinfo->count;
+    listobj->ro.count = headinfo->count;
 
+    listobj->func.prepend = insert_node_head;
     listobj->func.append = insert_node_tail;
     listobj->func.insert_next = insert_node_next;
     listobj->func.insert_prev = insert_node_prev;
@@ -72,21 +75,29 @@ List *init_list()
     listobj->func.swap = swap_node;
     listobj->func.move = move_node;
     #endif
+    listobj->func.first = get_node_first;
+    listobj->func.last = get_node_last;
+    listobj->func.at = get_node_at;
     listobj->func.find_node = get_node;
     #ifdef LIST_ARRAY_INDEX
     listobj->func.find_node_index = find_node_index;
     listobj->func.get_index = get_index;
     #endif
+    listobj->func.removeFirst = remove_node_First;
+    listobj->func.removeFirst_d = remove_node_First_d;
+    listobj->func.removeLast = remove_node_Last;
+    listobj->func.removeLast_d = remove_node_Last_d;
+
     listobj->func.remove_node = remove_node;
     listobj->func.remove_node_d = remove_node_all;
     #ifdef LIST_ARRAY_INDEX
-    listobj->func.remove_node_at = remove_node_at;
-    listobj->func.remove_node_at_d = remove_node_at_d;
+    listobj->func.remove = remove_node_at;
+    listobj->func.remove_d = remove_node_at_d;
     #endif
-    listobj->func.remove_node_all = destroy_list_node;
-    listobj->func.remove_node_all_d = destroy_list_node_all;
-    listobj->func.delete = destroy_list;
-    listobj->func.delete_d = destroy_list_all;
+    listobj->func.clear = destroy_list_node;
+    listobj->func.clear_d = destroy_list_node_all;
+    listobj->func.destroy = destroy_list;
+    listobj->func.destroy_d = destroy_list_all;
 
     return listobj;
 }
@@ -119,12 +130,12 @@ static int memory_extension(List *obj,struct _head_info *headinfo)
         headinfo->node_max += ARRAY_EXTENSION_VALUE;
 
         obj->index = headinfo->index;
-        //WRITE_LOG(NULL,"abc:%d\n",headinfo->node_max);
+        //FATAL_PRINT_LOG("abc:%d\n",headinfo->node_max);
     } else if(headinfo->node_max >= headinfo->count + ARRAY_THRESHOLD_VALUE + INIT_LIST_NODE_NUM + ARRAY_EXTENSION_VALUE){
         // 释放内存
         List_Node **p = (List_Node **)realloc(headinfo->index,(headinfo->node_max-ARRAY_EXTENSION_VALUE)*sizeof(List_Node *)); // 失败原内存不变
         if(p == NULL){
-            WRITE_LOG(NULL,"reduce menory failed\n");
+            FATAL_PRINT_LOG("reduce menory failed\n");
             return 0;
         }
         headinfo->index = p;
@@ -132,7 +143,7 @@ static int memory_extension(List *obj,struct _head_info *headinfo)
         headinfo->node_max -= ARRAY_EXTENSION_VALUE;
 
         obj->index = headinfo->index;
-        //WRITE_LOG(NULL,"xzz:%d\n",headinfo->node_max);
+        //FATAL_PRINT_LOG("xzz:%d\n",headinfo->node_max);
     }
     
     return 0;
@@ -195,13 +206,13 @@ List_Node *insert_node_head(List *obj,void *data)
     } else {
         List_Node *n = (List_Node *)malloc(sizeof(List_Node));
         if(n == NULL){
-            WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+            FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
             return NULL;
         }
         struct _head_info *headinfo = (struct _head_info*)head->data;
     #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"insert_node_head failed\n");
+            FATAL_PRINT_LOG("insert_node_head failed\n");
             return NULL;
         }
         // 插入指针到index头
@@ -220,7 +231,7 @@ List_Node *insert_node_head(List *obj,void *data)
         n->data = data;
         headinfo->count++;
 
-        obj->count = headinfo->count;
+        obj->ro.count = headinfo->count;
         return n;
     }
 }
@@ -260,13 +271,13 @@ List_Node *insert_node_tail(List *obj,void *data)
         
         List_Node *n = (List_Node *)malloc(sizeof(List_Node));
         if(n == NULL){
-            WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+            FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
             return NULL;
         }
         
         #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"insert_node_head failed\n");
+            FATAL_PRINT_LOG("insert_node_head failed\n");
             return NULL;
         }
         // 插入指针到index尾部
@@ -279,7 +290,7 @@ List_Node *insert_node_tail(List *obj,void *data)
         n->data = data;
         headinfo->count++;
 
-        obj->count = headinfo->count;
+        obj->ro.count = headinfo->count;
         return n;
     }
 }
@@ -296,7 +307,7 @@ List_Node *insert_node_tail(List *obj,void *data)
 */
 List_Node *insert_node_next(List *obj,List_Node *node,void *data){
     if(node == NULL){
-        WRITE_LOG(NULL,"insert failed\n");
+        FATAL_PRINT_LOG("insert failed\n");
         return NULL;
     }
     if(obj == NULL){
@@ -304,19 +315,19 @@ List_Node *insert_node_next(List *obj,List_Node *node,void *data){
     }
     List_Node *head = obj->ro.head;
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return NULL;
     }
 
     List_Node *n = (List_Node *)malloc(sizeof(List_Node));
     if(n == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         return NULL;
     }
     struct _head_info *headinfo = (struct _head_info*)head->data;
     #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"insert_node_head failed\n");
+            FATAL_PRINT_LOG("insert_node_head failed\n");
             return NULL;
         }
         // 插入指针到index的node之后
@@ -348,7 +359,7 @@ List_Node *insert_node_next(List *obj,List_Node *node,void *data){
     n->data = data;
     headinfo->count++;
 
-    obj->count = headinfo->count;
+    obj->ro.count = headinfo->count;
     return n;
 }
 /*
@@ -369,24 +380,24 @@ List_Node *insert_node_prev(List *obj,List_Node *node,void *data)
     }
     List_Node *head = obj->ro.head;
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return NULL;
     }
 
     if(head == NULL || node == NULL || node == head){
-        WRITE_LOG(NULL,"insert failed\n");
+        FATAL_PRINT_LOG("insert failed\n");
         return NULL;
     }
     
     List_Node *n = (List_Node *)malloc(sizeof(List_Node));
     if(n == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         return NULL;
     }
     struct _head_info *headinfo = (struct _head_info*)head->data;
     #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"insert_node_head failed\n");
+            FATAL_PRINT_LOG("insert_node_head failed\n");
             return NULL;
         }
         // 插入指针到index的node之前
@@ -411,7 +422,7 @@ List_Node *insert_node_prev(List *obj,List_Node *node,void *data)
     n->data = data;
     headinfo->count++;
 
-    obj->count = headinfo->count;
+    obj->ro.count = headinfo->count;
     return n;
 }
 #ifdef LIST_ARRAY_INDEX
@@ -441,7 +452,7 @@ List_Node *insert_at(List *obj,int index,void *data)
     }
     
     if(0 != memory_extension(obj,headinfo)){
-        WRITE_LOG(NULL,"insert_node_head failed\n");
+        FATAL_PRINT_LOG("insert_node_head failed\n");
         return NULL;
     }
     List_Node *node;
@@ -667,6 +678,63 @@ int move_node(List *obj,int i,int j)
     return 0;
 }
 #endif
+
+List_Node *get_node_first(List *obj){
+    if(obj == NULL){
+        return NULL;
+    }
+    List_Node *head = obj->ro.head;
+    if(head == NULL){
+        return NULL;
+    }
+    return head->next;
+}
+List_Node *get_node_last(List *obj){
+    if(obj == NULL){
+        return NULL;
+    }
+
+    List_Node *head = obj->ro.head;
+    if(head == NULL){
+        return NULL;
+    }
+
+    List_Node *p = head->next;
+    while (p != NULL)
+    {
+        if(p->next == NULL){
+            return p;
+        }
+        p = p->next;
+    }
+    return NULL;
+}
+
+List_Node *get_node_at(List *obj,int index){
+    if(obj == NULL){
+        return NULL;
+    }
+    if(index < 0 || index >= obj->ro.count){
+        return NULL;
+    }
+
+    List_Node *head = obj->ro.head;
+    if(head == NULL){
+        return NULL;
+    }
+
+    int count = 0;
+    List_Node *p = head->next;
+    while (p != NULL)
+    {
+        if(count == index){
+            return p;
+        }
+        p = p->next;
+        count++;
+    }
+    return NULL;
+}
 /*
     功能：
         查找data
@@ -712,7 +780,7 @@ List_Node *get_node_next(List *obj,List_Node *node)
         return NULL;
     }
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return NULL;
     }
 
@@ -734,7 +802,7 @@ List_Node *get_node_prev(List *obj,List_Node *node)
         return NULL;
     }
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return NULL;
     }
 
@@ -814,7 +882,7 @@ List_Node *get_node_index(List *obj,int index)
         return NULL;
     }
     struct _head_info *headinfo = (struct _head_info*)head->data;
-    //WRITE_LOG(NULL,"%d,%d\n",headinfo->count,index);
+    FATAL_PRINT_LOG("%d,%d\n",headinfo->count,index);
     if(headinfo->count <= index){
         return NULL;
     }
@@ -857,12 +925,41 @@ static void delete_node_all(List_Node *node)
     }
 
     if(node->data != NULL){ // 在链表外部申请的内存，链表内部释放
-        //WRITE_LOG(NULL,"delete node->data,%p\n",node->data);
+        //FATAL_PRINT_LOG("delete node->data,%p\n",node->data);
         free(node->data);
     }
 
     free(node);
 }
+
+int remove_node_First(List *obj){
+    if(obj == NULL){
+        return -1;
+    }
+    return remove_node(obj,obj->func.first(obj));
+}
+
+int remove_node_First_d(List *obj){
+    if(obj == NULL){
+        return -1;
+    }
+    return remove_node_all(obj,obj->func.first(obj));
+}
+
+int remove_node_Last(List *obj){
+    if(obj == NULL){
+        return -1;
+    }
+    return remove_node(obj,obj->func.last(obj));
+}
+
+int remove_node_Last_d(List *obj){
+    if(obj == NULL){
+        return -1;
+    }
+    return remove_node_all(obj,obj->func.last(obj));
+}
+
 /*
     功能：
         删除node
@@ -880,17 +977,17 @@ int remove_node(List *obj,List_Node *node)
     }
     List_Node *head = obj->ro.head;
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return -1;
     }
     if(head == NULL || node == NULL || node == head){
-        WRITE_LOG(NULL,"remove failed\n");
+        FATAL_PRINT_LOG("remove failed\n");
         return -1;
     }
     struct _head_info *headinfo = (struct _head_info*)head->data;
     #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"remove_node failed\n");
+            FATAL_PRINT_LOG("remove_node failed\n");
             return -1;
         }
         // 删除index的node位置
@@ -919,7 +1016,7 @@ int remove_node(List *obj,List_Node *node)
     delete_node(node);
     if(headinfo->count > 0)
         headinfo->count--;
-    obj->count = headinfo->count;
+    obj->ro.count = headinfo->count;
     return 0;
 }
 /*
@@ -939,17 +1036,17 @@ int remove_node_all(List *obj,List_Node *node)
     }
     List_Node *head = obj->ro.head;
     if(0 != check_node(obj,node)){
-        WRITE_LOG(NULL,"have not found node in list\n");
+        FATAL_PRINT_LOG("have not found node in list\n");
         return -1;
     }
     if(head == NULL || node == NULL || node == head){
-        WRITE_LOG(NULL,"remove failed\n");
+        FATAL_PRINT_LOG("remove failed\n");
         return -1;
     }
     struct _head_info *headinfo = (struct _head_info*)head->data;
     #ifdef LIST_ARRAY_INDEX
         if(0 != memory_extension(obj,headinfo)){
-            WRITE_LOG(NULL,"remove_node_all failed\n");
+            FATAL_PRINT_LOG("remove_node_all failed\n");
             return -1;
         }
         // 删除index的node位置
@@ -978,7 +1075,7 @@ int remove_node_all(List *obj,List_Node *node)
     delete_node_all(node);
     if(headinfo->count > 0)
         headinfo->count--;
-    obj->count = headinfo->count;
+    obj->ro.count = headinfo->count;
     return 0;
 }
 /*
@@ -1080,14 +1177,14 @@ void destroy_list_node_all(List *obj)
     if(head == NULL){
         return;
     }
-    struct _head_info *headinfo = (struct _head_info*)head->data;
-    //WRITE_LOG(NULL,"delete all count=%d\n",headinfo->count);
+    //struct _head_info *headinfo = (struct _head_info*)head->data;
+    //FATAL_PRINT_LOG("delete all count=%d\n",headinfo->count);
     List_Node *node = head->next;
     while (node != NULL)
     {
-        //WRITE_LOG(NULL,"%p\n",node);
+        //FATAL_PRINT_LOG("%p\n",node);
         remove_node_all(obj,node);
         node = head->next;
     }
-    //WRITE_LOG(NULL,"delete all count=%d\n",headinfo->count);
+    //FATAL_PRINT_LOG("delete all count=%d\n",headinfo->count);
 }

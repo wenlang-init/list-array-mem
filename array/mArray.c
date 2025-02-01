@@ -1,5 +1,5 @@
 #include "mArray.h"
-#include "log_info.h"
+#include "printFunction.h"
 #include <stdlib.h>
 #include <errno.h>
 #include <string.h>
@@ -24,14 +24,14 @@ Array *init_array()
 {
     Array *array = (Array *)malloc(sizeof(Array));
     if(array == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         return NULL;
     }
 
     array->ro.node_max = INIT_LIST_NODE_NUM;
     array->ro.index = (Array_Node *)malloc(sizeof(Array_Node)*array->ro.node_max);
     if(array->ro.index == NULL){
-        WRITE_LOG(NULL,"malloc:%s\n",strerror(errno));
+        FATAL_PRINT_LOG("malloc:%s\n",strerror(errno));
         free(array);
         return NULL;
     }
@@ -39,9 +39,14 @@ Array *init_array()
     array->ro.count = 0;
 
     // 数组方法
-    array->func.insert_head = array_insert_node_head;
+    array->func.prepend = array_insert_node_head;
     array->func.append = array_insert_node_tail;
     array->func.insert = array_insert_at;
+
+    array->func.removeFirst = array_removeFirst;
+    array->func.removeFirst_d = array_removeFirst_d;
+    array->func.removeLast = array_removeLast;
+    array->func.removeLast_d = array_removeLast_d;
 
     array->func.remove = array_remove_node_at;
     array->func.remove_d = array_remove_node_at_d;
@@ -56,6 +61,8 @@ Array *init_array()
 
     array->func.get_node_index = array_get_node_index;
     array->func.at = array_get_node_at;
+    array->func.first = array_get_nodeFirst;
+    array->func.last = array_get_nodeLast;
 
     array->func.find_node_index = array_find_node_index;
 
@@ -81,7 +88,7 @@ static int memory_extension(Array *obj)
         // 扩展内存
         Array_Node *p = (Array_Node *)realloc(obj->ro.index,(obj->ro.node_max+ARRAY_EXTENSION_VALUE)*sizeof(Array_Node));
         if(p == NULL){
-            WRITE_LOG(NULL,"realloc:%s\n",strerror(errno));
+            FATAL_PRINT_LOG("realloc:%s\n",strerror(errno));
             return -1;
         }
         obj->ro.index = p;
@@ -89,7 +96,7 @@ static int memory_extension(Array *obj)
     } else if(obj->ro.node_max >= obj->ro.count+ARRAY_THRESHOLD_VALUE+INIT_LIST_NODE_NUM+ARRAY_EXTENSION_VALUE){
         Array_Node *p = (Array_Node *)realloc(obj->ro.index,(obj->ro.node_max-ARRAY_EXTENSION_VALUE)*sizeof(Array_Node));
         if(p == NULL){
-            WRITE_LOG(NULL,"realloc:%s\n",strerror(errno));
+            FATAL_PRINT_LOG("realloc:%s\n",strerror(errno));
             return 0;
         }
         obj->ro.index = p;
@@ -190,6 +197,43 @@ Array_Node *array_insert_at(Array *obj,int index,void *data)
 
     return node;
 }
+
+// 删除第1个
+int array_removeFirst(Array *obj){
+    if(obj == NULL){
+        return -1;
+    }
+
+    return array_remove_node_at(obj,0);
+}
+
+int array_removeFirst_d(Array *obj){
+    if(obj == NULL){
+        return -1;
+    }
+
+    return array_remove_node_at_d(obj,0);
+}
+
+// 删除最后一个
+int array_removeLast(Array *obj){
+    if(obj == NULL){
+        return -1;
+    }
+
+    return array_remove_node_at(obj,obj->ro.count-1);
+    return 0;
+}
+
+int array_removeLast_d(Array *obj){
+    if(obj == NULL){
+        return -1;
+    }
+
+    return array_remove_node_at_d(obj,obj->ro.count-1);
+    return 0;
+}
+
 /*
 功能：删除index处的节点
 参数：
@@ -413,6 +457,27 @@ Array_Node *array_get_node_at(Array *obj,int index)
     }
     return &obj->ro.index[index];
 }
+// 获取第1个节点
+Array_Node *array_get_nodeFirst(Array *obj){
+    if(obj == NULL){
+        return NULL;
+    }
+    if(obj->ro.count <= 0){
+        return NULL;
+    }
+    return &obj->ro.index[0];
+}
+// 获取最后1个节点
+Array_Node *array_get_nodeLast(Array *obj){
+    if(obj == NULL){
+        return NULL;
+    }
+    if(obj->ro.count <= 0){
+        return NULL;
+    }
+    return &obj->ro.index[obj->ro.count-1];
+}
+
 /*
 功能：根据data指针查找node,要求表中数据指针唯一，否则返回第一个找到的,没找到返回负数
 参数：
