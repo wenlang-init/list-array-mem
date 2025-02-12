@@ -443,25 +443,13 @@ void writeLog(LOG_TYPE_ENUM level, const char *function, const char *file, const
     double timed = __get_printfTime_d();
 
     if(m_printStdout){
-        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s",typemsg,timechr,timed, ProcessId,ThreadId,file, line,function,buffer);
+        fprintf(stdout,YELLOW "%s:" GREEN "time:%s(%.6lf)" BOLDBLACK "|" RESET BOLDYELLOW "PId:%lu" BOLDBLUE "Tid:%lu" BOLDBLACK "|" RESET CYAN "%s:%d" BLUE "(%s)" MAGENTA "---" RESET "%s\n",typemsg,timechr,timed, ProcessId,ThreadId,file, line,function,buffer);
         fflush(stdout);
     }
 
     if(m_logObj){
         if(m_logObj->level <= level){
             int buffer_len = strlen(buffer);
-            int function_len = 4;
-            if(function){
-                function_len = strlen(function);
-            } else {
-                function = "null";
-            }
-            int file_len = 4;
-            if(file){
-                file_len = strlen(file);
-            } else {
-                file = "null";
-            }
             char tmpbuf[1024];
             int len = snprintf(tmpbuf,sizeof(tmpbuf)," %s(%.6lf)|(%lu:%lu) %s:%d(%s) ",timechr,timed, ProcessId,ThreadId,file,line,function);
             if(len < 0){
@@ -567,4 +555,12 @@ void writeLognone(LOG_TYPE_ENUM level,const char* data)
 void setLogPrint(int isPrint)
 {
     m_printStdout = isPrint;
+}
+
+int getcurrentLogCount()
+{
+    if(!m_logObj){
+        return 0;
+    }
+    return m_logObj->logList->ro.count;
 }

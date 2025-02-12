@@ -16,6 +16,8 @@ void destinyLog();
 int setLogLevel(LOG_TYPE_ENUM level);
 // 设置是否在标准输出(stdout)输出
 void setLogPrint(int isPrint);
+// 获取当前缓存区日志数量
+int getcurrentLogCount();
 
 void writeLogformat(LOG_TYPE_ENUM level,const char* function,const char *file,const int line,const char* format, ...);
 void writeLog(LOG_TYPE_ENUM level,const char* function,const char *file,const int line,const char* data);
@@ -48,6 +50,52 @@ do{ \
 #define FATAL_LOG_FFL(func,file,line,__format, ...)    WRITE_LOG_FFL(LOG_TYPE_ENUM_FATAL,func,file,line,__format,##__VA_ARGS__)
 #define INFO_LOG_FFL(func,file,line,__format, ...)     WRITE_LOG_FFL(LOG_TYPE_ENUM_INFO,func,file,line,__format,##__VA_ARGS__)
 
+#define CUSTOMMSGHANDLER_LOG \
+[](QtMsgType type, const QMessageLogContext &context, const QString &msg)\
+{\
+        QString tempMsg;\
+        if (context.file && QString::fromStdString(context.file).contains("qrc:/"))\
+    {\
+            tempMsg += "qmlLog ";\
+    }\
+    \
+        if (msg.contains("TypeError") && msg.contains("sRowHeight"))\
+    {\
+            return;\
+    }\
+    \
+        tempMsg += msg;\
+    \
+        switch (type)\
+    {\
+        case QtDebugMsg:\
+            writeLogformat(LOG_TYPE_ENUM_DEBUG,context.function,context.file, context.line,"%s\n", tempMsg.toLocal8Bit().constData());\
+            break;\
+        case QtInfoMsg:\
+            writeLogformat(LOG_TYPE_ENUM_INFO,context.function,context.file, context.line,"%s\n", tempMsg.toLocal8Bit().constData());\
+            break;\
+        case QtWarningMsg:\
+            writeLogformat(LOG_TYPE_ENUM_WARRING,context.function,context.file, context.line,"%s\n", tempMsg.toLocal8Bit().constData());\
+            break;\
+        case QtCriticalMsg:\
+            writeLogformat(LOG_TYPE_ENUM_CRITICAL,context.function,context.file, context.line,"%s\n", tempMsg.toLocal8Bit().constData());\
+            break;\
+        case QtFatalMsg:\
+            writeLogformat(LOG_TYPE_ENUM_FATAL,context.function,context.file, context.line,"%s\n", tempMsg.toLocal8Bit().constData());\
+            break;\
+            default:\
+            break;\
+    }\
+}
+
+#define REDIRECT_QTMESSAGE_LOG(handler) \
+do{\
+        if(handler){\
+            qInstallMessageHandler(handler);\
+    } else {\
+            qInstallMessageHandler(CUSTOMMSGHANDLER_LOG);\
+    }\
+}while(0)
 
 #ifdef __cplusplus
 }
