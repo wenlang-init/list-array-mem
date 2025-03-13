@@ -10,6 +10,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include "decode/autf8.h"
+#include "decode/base64.h"
 
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
 {
@@ -262,6 +263,53 @@ int main()
 	CRITICAL_LOG("%lld %llx\n",c,c);
 	FATAL_LOG("-------------------------\n");
 	INFO_LOG("vvvvvvvvvvvv\n");
+
+	char str[] = "ManMan💖 \xf0\x9f\x92\x91";
+	char *ptr = toBase64((unsigned char*)str,sizeof(str));
+	if(ptr != NULL){
+		INFO_LOG("%s,len=%d\n",ptr,(int)strlen(ptr));
+		unsigned int le;
+		char *cptr = fromBase64(ptr,strlen(ptr),&le);
+		if(cptr!= NULL){
+			INFO_LOG("len:%d\n",le);
+			for(int i=0;i<le;i++){
+				printf("%c",cptr[i]);
+			}
+			printf("\n");
+			free(cptr);
+		}
+		free(ptr);
+	}
+
+	DEBUG_PRINT_LOG("");
+	srand(NULL);
+	#define MAX_SIZE 101
+	unsigned char *src = (unsigned char *)malloc(MAX_SIZE);
+	for(int i=0;i<5;i++){
+		for(int j=0;j<MAX_SIZE;j++){
+			src[j] = rand()%256;
+			printf("%02x",src[j]);
+		}
+		printf("\n");
+
+		char *ptr = toBase64((unsigned char*)src,MAX_SIZE);
+		if(ptr!= NULL){
+			DEBUG_LOG("%s,len=%d\n",ptr,(int)strlen(ptr));
+			unsigned int le;
+			char *cptr = fromBase64(ptr,strlen(ptr),&le);
+			if(cptr!= NULL){
+				INFO_LOG("len:%d\n",le);
+				for(int i=0;i<le;i++){
+					printf("%02x",cptr[i]&0xff);
+				}
+				printf("\n");
+				free(cptr);
+			}
+			free(ptr);
+		}
+	}
+	free(src);
+	DEBUG_PRINT_LOG("");
 
 	destinyLog();
 

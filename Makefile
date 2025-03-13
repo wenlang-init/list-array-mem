@@ -57,6 +57,7 @@ C_FLAGS += -fPIC
 
 # CPP 编译参数
 CXX_FLAGS += -W #-Wall
+#CXX_FLAGS += -std=c++11
 #CXX_FLAGS += -Wshadow -Wundef -Wmaybe-uninitialized
 # 指定源文件类型为CPP
 # CXX_FLAGS += -x c++

@@ -1,5 +1,5 @@
-#ifndef SWCP_H
-#define SWCP_H
+#ifndef MENDIAN_H
+#define MENDIAN_H
 
 class MEndian
 {
@@ -96,4 +96,4 @@ public:
     }
 };
 
-#endif // SWCP_H
+#endif // MENDIAN_H

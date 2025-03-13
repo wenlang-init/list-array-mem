@@ -136,8 +136,10 @@ int createFile(LogObj *m_logObj)
 
     if(0 != create_dir(m_logObj->logDir)){
         FATAL_PRINT_LOG("create_dir failed\n");
-        free(m_logObj->logFilePNameCurrent);
-        m_logObj->logFilePNameCurrent = NULL;
+        if(m_logObj->logFilePNameCurrent){
+            free(m_logObj->logFilePNameCurrent);
+            m_logObj->logFilePNameCurrent = NULL;
+        }
         return -1;
     }
 
