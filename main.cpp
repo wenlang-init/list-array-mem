@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include "decode/autf8.h"
 #include "decode/base64.h"
+#include "decode/beastSound.h"
 
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
 {
@@ -310,6 +311,35 @@ int main()
 	}
 	free(src);
 	DEBUG_PRINT_LOG("");
+
+	{
+		char *utf8src = "123nna你好";
+		//const char *dict[4] = {"0","1","2","3"};//{"嗷","呜","啊","~"};
+		const char *dict[4] = {"嗷","呜","啊","~"};
+		char *pp = toBeastSound_2byte((const unsigned char *)utf8src,strlen(utf8src),dict);
+		if(pp!= NULL){
+			DEBUG_PRINT_LOG("%s\n",pp);
+			char *ppp = fromBeastSound_2byte((const unsigned char *)pp,strlen(pp),dict);
+			if(ppp!= NULL){
+				DEBUG_PRINT_LOG("%s\n",ppp);
+				free(ppp);
+			}
+			free(pp);
+		}
+	}
+	char *utf8src = "💖💖你好𐌰𰃺𰀀";
+	//const char *dict[4] = {"0","1","2","3"};//{"嗷","呜","啊","~"};
+	const char *dict[4] = {"嗷","呜","啊","~"};
+	char *pp = toBeastSound((const unsigned char *)utf8src,strlen(utf8src),dict);
+	if(pp!= NULL){
+		DEBUG_PRINT_LOG("%s\n",pp);
+		char *ppp = fromBeastSound((const unsigned char *)pp,strlen(pp),dict);
+		if(ppp!= NULL){
+			DEBUG_PRINT_LOG("%s\n",ppp);
+			free(ppp);
+		}
+		free(pp);
+	}
 
 	destinyLog();
 
