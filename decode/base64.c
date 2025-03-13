@@ -98,13 +98,14 @@ char *fromBase64(char *src, unsigned int length,unsigned int *destsize)
 			}
 		}
 	} else {
-		if(len <= 3){
+		if(len < 3){
 			return NULL;
 		}
 		if(tlen == 0){
 			// 处理需要补齐的数据
 			if(Base64ToIndex(src[length-3])==-1 || Base64ToIndex(src[length-4])==-1){
 				// 无效数据
+				printf("invalid data:%c %c %c %c\n",src[length-4],src[length-3],src[length-2],src[length-1]);
 				return NULL;
 			} else {
 				if(src[length-1]=='='){
