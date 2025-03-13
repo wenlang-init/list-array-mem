@@ -76,14 +76,6 @@ char *fromBeastSound_2byte(const unsigned char *beastsound, int len,const char *
     if(len < 12)return NULL;
     int ret,cnt = 0,unicodecnt=0;
     unsigned long dictunicode[4];
-    for(int i=0;i<4;i++){
-        ret = UTF8_getc(dict[i], strlen(dict[i]), &dictunicode[i]);
-        if(ret < 0){
-            printf("UTF8_getc error\n");
-            return NULL;
-        }
-    }
-
     unsigned long *unicode = (unsigned long *)malloc(sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
@@ -93,23 +85,31 @@ char *fromBeastSound_2byte(const unsigned char *beastsound, int len,const char *
             free(unicode);
             return NULL;
         }
-        int isfound = 0;
-        for(int i=0;i<4;i++){
-            if(unicode[unicodecnt] == dictunicode[i]){
-                isfound = 1;
-                break;
-            }
-        }
-        if(!isfound){
-            printf("data error\n");
-            free(unicode);
-            return NULL;
+        //421 3
+        if(unicodecnt == 0){
+            dictunicode[3] = unicode[unicodecnt];
+        } else if(unicodecnt == 1){
+            dictunicode[1] = unicode[unicodecnt];
+        } else if(unicodecnt == 2){
+            dictunicode[0] = unicode[unicodecnt];
         }
         cnt += ret;
         unicodecnt++;
     }
-    if(unicode[0] != dictunicode[3] || unicode[1] != dictunicode[1] || unicode[2] != dictunicode[0] || unicode[unicodecnt-1] != dictunicode[2]
-    || (unicodecnt-4)%8 != 0){
+
+    dictunicode[2] = unicode[unicodecnt-1];
+    for(int i=0;i< 4;i++){
+        for(int j=0;j<4;j++){
+            if(i == j)continue;
+            if(dictunicode[i] == dictunicode[j]){
+                printf("dict error\n");
+                free(unicode);
+                return NULL;
+            }
+        }
+    }
+
+    if((unicodecnt-4)%8 != 0){
         printf("data error,cnt:%d\n",unicodecnt);
         free(unicode);
         return NULL;
@@ -120,13 +120,21 @@ char *fromBeastSound_2byte(const unsigned char *beastsound, int len,const char *
     for(int i=3;i<unicodecnt-1;i+=8){
         int c,k;
         unsigned long utf8_unicode = 0;
-        int dictindex[8]={0};
+        int dictindex[8]={-1};
         for(int k=0;k<8;k++){
+            int isfound = 0;
             for(int m=0;m<4;m++){
                 if(unicode[i+k] == dictunicode[m]){
                     dictindex[k] = m;
+                    isfound = 1;
                     break;
                 }
+            }
+            if(isfound == 0){
+                printf("data error\n");
+                free(utf8);
+                free(unicode);
+                return NULL;
             }
         }
         for(int j=0;j < 4;j++){
@@ -215,13 +223,6 @@ char *fromBeastSound(const unsigned char *beastsound, int len,const char *dict[4
     if(len < 20)return NULL;
     int ret,cnt = 0,unicodecnt=0;
     unsigned long dictunicode[4];
-    for(int i=0;i<4;i++){
-        ret = UTF8_getc(dict[i], strlen(dict[i]), &dictunicode[i]);
-        if(ret < 0){
-            printf("UTF8_getc error\n");
-            return NULL;
-        }
-    }
 
     unsigned long *unicode = (unsigned long *)malloc(sizeof(unsigned long)*len);
     if(!unicode)return NULL;
@@ -232,23 +233,30 @@ char *fromBeastSound(const unsigned char *beastsound, int len,const char *dict[4
             free(unicode);
             return NULL;
         }
-        int isfound = 0;
-        for(int i=0;i<4;i++){
-            if(unicode[unicodecnt] == dictunicode[i]){
-                isfound = 1;
-                break;
-            }
-        }
-        if(!isfound){
-            printf("data error\n");
-            free(unicode);
-            return NULL;
+        //421 3
+        if(unicodecnt == 0){
+            dictunicode[3] = unicode[unicodecnt];
+        } else if(unicodecnt == 1){
+            dictunicode[1] = unicode[unicodecnt];
+        } else if(unicodecnt == 2){
+            dictunicode[0] = unicode[unicodecnt];
         }
         cnt += ret;
         unicodecnt++;
     }
-    if(unicode[0] != dictunicode[3] || unicode[1] != dictunicode[1] || unicode[2] != dictunicode[0] || unicode[unicodecnt-1] != dictunicode[2]
-    || (unicodecnt-4)%8 != 0){
+    dictunicode[2] = unicode[unicodecnt-1];
+    for(int i=0;i< 4;i++){
+        for(int j=0;j<4;j++){
+            if(i == j)continue;
+            if(dictunicode[i] == dictunicode[j]){
+                printf("dict error\n");
+                free(unicode);
+                return NULL;
+            }
+        }
+    }
+
+    if((unicodecnt-4)%16 != 0){
         printf("data error,cnt:%d\n",unicodecnt);
         free(unicode);
         return NULL;
@@ -261,11 +269,19 @@ char *fromBeastSound(const unsigned char *beastsound, int len,const char *dict[4
         unsigned long utf8_unicode = 0;
         int dictindex[16]={0};
         for(int k=0;k<16;k++){
+            int isfound = 0;
             for(int m=0;m<4;m++){
                 if(unicode[i+k] == dictunicode[m]){
                     dictindex[k] = m;
+                    isfound = 1;
                     break;
                 }
+            }
+            if(isfound == 0){
+                printf("data error\n");
+                free(utf8);
+                free(unicode);
+                return NULL;
             }
         }
         for(int j=0;j < 8;j++){
