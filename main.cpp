@@ -330,15 +330,36 @@ int main()
 	const char *utf8src = "💖💖你好𐌰𰃺𰀀";
 	//const char *dict[4] = {"0","1","2","3"};//{"嗷","呜","啊","~"};
 	const char *dict[4] = {"嗷","呜","啊","~"};
-	char *pp = toBeastSound((const unsigned char *)utf8src,strlen(utf8src),dict);
+	char *pp = toBeastSound_4byte((const unsigned char *)utf8src,strlen(utf8src),dict);
 	if(pp!= NULL){
 		DEBUG_PRINT_LOG("%s\n",pp);
-		char *ppp = fromBeastSound((const unsigned char *)pp,strlen(pp));
+		char *ppp = fromBeastSound_4byte((const unsigned char *)pp,strlen(pp));
 		if(ppp!= NULL){
 			DEBUG_PRINT_LOG("%s\n",ppp);
 			free(ppp);
 		}
 		free(pp);
+	}
+
+	{
+		char srcdata[] = "💖💖你好𐌰𰃺𰀀\1\2\3\4\5";
+		//const char *dict[4] = {"0","1","2","3"};//{"嗷","呜","啊","~"};
+		const char *dict[4] = {"嗷","呜","啊","~"};
+		char *pp = toBeastSound(srcdata,sizeof(srcdata),dict);
+		if(pp!= NULL){
+			DEBUG_PRINT_LOG("%s\n",pp);
+			int destsize;
+			char *ppp = fromBeastSound((const char *)pp,strlen(pp),&destsize);	
+			if(ppp!= NULL){
+				DEBUG_PRINT_LOG("%d,%s\n",destsize,ppp);
+				for(int i=0;i<destsize;i++){
+					printf("%02x",ppp[i]&0xff);
+				}
+				printf("\n");
+				free(ppp);
+			}
+			free(pp);
+		}
 	}
 
 	{

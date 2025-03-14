@@ -160,7 +160,7 @@ char *fromBeastSound_2byte(const unsigned char *beastsound, int len,const char *
     return utf8;
 }
 
-char *toBeastSound(const unsigned char *utf8src, int len,const char *dict[4])
+char *toBeastSound_4byte(const unsigned char *utf8src, int len,const char *dict[4])
 {
     if(len < 1)return NULL;
     unsigned long val;
@@ -218,7 +218,7 @@ char *toBeastSound(const unsigned char *utf8src, int len,const char *dict[4])
     return beastsound;
 }
 
-char *fromBeastSound(const unsigned char *beastsound, int len,const char *dict[4])
+char *fromBeastSound_4byte(const unsigned char *beastsound, int len,const char *dict[4])
 {
     if(len < 20)return NULL;
     int ret,cnt = 0,unicodecnt=0;
@@ -305,4 +305,128 @@ char *fromBeastSound(const unsigned char *beastsound, int len,const char *dict[4
     }
     free(unicode);
     return utf8;
+}
+
+char *toBeastSound(const char *utf8src, int len,const char *dict[4])
+{
+    if(utf8src == NULL || len < 1)return NULL;
+    int lenght[4];
+    lenght[0] = strlen(dict[0]);
+    lenght[1] = strlen(dict[1]);
+    lenght[2] = strlen(dict[2]);
+    lenght[3] = strlen(dict[3]);
+    int maxlen = lenght[0];
+    for(int i=0;i<4;i++){
+        if(maxlen < lenght[i])maxlen = lenght[i];
+    }
+    int beastsoundlen = maxlen*len*4 + lenght[0] + lenght[1] + lenght[2] + lenght[3];
+    char *beastsound = (char *)malloc(beastsoundlen);
+    if(!beastsound){
+        perror("malloc:");
+        return NULL;
+    }
+    int beastsoundindex = 0;
+    memcpy(beastsound+beastsoundindex,dict[3],lenght[3]);
+    beastsoundindex += lenght[3];
+    memcpy(beastsound+beastsoundindex,dict[1],lenght[1]);
+    beastsoundindex += lenght[1];
+    memcpy(beastsound+beastsoundindex,dict[0],lenght[0]);
+    beastsoundindex += lenght[0];
+
+    int index = 0,c,k;;
+    for(int i=0;i<len;i++){
+        for(int j=0;j<2;j++){
+            if(index > 15)index = 0;
+            c = (utf8src[i] >> 4-j*4) & 0xf;
+            k = (c + index)%16;
+            memcpy(beastsound+beastsoundindex,dict[k/4],lenght[k/4]);
+            beastsoundindex += lenght[k/4];
+            memcpy(beastsound+beastsoundindex,dict[k%4],lenght[k%4]);
+            beastsoundindex += lenght[k%4];
+            index++;
+        }
+    }
+    memcpy(beastsound+beastsoundindex,dict[2],lenght[2]);
+    beastsoundindex += lenght[2];
+    beastsound[beastsoundindex] = 0;
+
+    return beastsound;
+}
+
+char *fromBeastSound(const char *beastsound, int len,int *destsize)
+{
+    if(beastsound==NULL || len < 8)return NULL;
+    int ret,cnt = 0,unicodecnt=0;
+    unsigned long dictunicode[4];
+    unsigned long *unicode = (unsigned long *)malloc(sizeof(unsigned long)*len);
+    if(!unicode)return NULL;
+    while(cnt < len){
+        ret = UTF8_getc(beastsound+cnt, len, &unicode[unicodecnt]);
+        if(ret < 0){
+            printf("UTF8_getc error\n");
+            free(unicode);
+            return NULL;
+        }
+        //421 3
+        if(unicodecnt == 0){
+            dictunicode[3] = unicode[unicodecnt];
+        } else if(unicodecnt == 1){
+            dictunicode[1] = unicode[unicodecnt];
+        } else if(unicodecnt == 2){
+            dictunicode[0] = unicode[unicodecnt];
+        }
+        cnt += ret;
+        unicodecnt++;
+    }
+    dictunicode[2] = unicode[unicodecnt-1];
+    for(int i=0;i< 4;i++){
+        for(int j=i+1;j<4;j++){
+            if(dictunicode[i] == dictunicode[j]){
+                printf("dict error\n");
+                free(unicode);
+                return NULL;
+            }
+        }
+    }
+
+    if((unicodecnt-4)%4 != 0){
+        printf("data error,cnt:%d\n",unicodecnt);
+        free(unicode);
+        return NULL;
+    }
+    char *destdata = (char *)malloc(sizeof(char)*(unicodecnt-4)/4);
+    int index = 0;
+    for(int i=3;i<unicodecnt-1;i+=4){
+        int c,k;
+        char destval = 0;
+        int dictindex[4]={0};
+        for(int k=0;k<4;k++){
+         int isfound = 0;
+            for(int m=0;m<4;m++){
+                if(unicode[i+k] == dictunicode[m]){
+                    dictindex[k] = m;
+                    isfound = 1;
+                    break;
+                }
+            }
+            if(isfound == 0){
+                printf("%s,%d,data error\n",__FUNCTION__,__LINE__);
+                free(destdata);
+                free(unicode);
+                return NULL;
+            }
+        }
+        for(int j=0;j < 2;j++){
+            if(index > 15)index = 0;
+            k = dictindex[j*2]*4 + dictindex[j*2+1];
+            c = (k - index)%16;
+            if(c < 0)c += 16;
+            destval |= (char)c << 4-j*4;
+            index++;
+        }
+        memcpy(destdata+((i-3)/4),&destval,1);
+    }
+    free(unicode);
+    *destsize = (unicodecnt-4)/4;
+    return destdata;
 }
