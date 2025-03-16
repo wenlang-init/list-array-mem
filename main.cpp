@@ -12,6 +12,34 @@
 #include "decode/autf8.h"
 #include "decode/base64.h"
 #include "decode/beastSound.h"
+#include <pthread.h>
+
+static void cleanup_func_free(void **data)
+{
+	if(*data){
+		printf("cleanup_func_free:%p\n",*data);
+		free(*data);
+	}
+}
+
+static void cleanup_func_mutex(void **mute)
+{
+	if(*mute){
+		printf("cleanup_func_mute:%p\n",*mute);
+		pthread_mutex_unlock((pthread_mutex_t *)*mute);
+	}
+}
+
+// GNU中 C语言 实现RALL资源自动释放,适用于gcc,clang,不适用语msvc
+// 当变量的生命周期结束时，会自动调用函数，实现内存释放。
+// 注解:这里传入的是&name作为参数给cleanup_func_free函数
+#define AUTOPTR(name,size) __attribute__((cleanup(cleanup_func_free))) void *name = malloc(size)
+#define AUTOPTR_1 __attribute__((cleanup(cleanup_func_free))) void *
+
+// 参数为已经初始化了的锁，且未上锁
+// int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *mutexattr);
+// pthread_mutex_t mutex_lock=PTHREAD_MUTEX_INITIALIZER;
+#define AUTOPTR_MUTEX(mutex) __attribute__((cleanup(cleanup_func_mutex))) void *_mutex = &mutex;pthread_mutex_lock((pthread_mutex_t*)_mutex)
 
 unsigned char encrypt(unsigned char *p, unsigned int size, unsigned char key)
 {
@@ -342,7 +370,7 @@ int main()
 	}
 
 	{
-		char srcdata[] = "💖💖你好𐌰𰃺𰀀\1\2\3\4\5";
+		char srcdata[] = "\u2764\ufe0f❤️💖💖你好𐌰𰃺𰀀\1\2\3\4\5";//
 		//const char *dict[4] = {"0","1","2","3"};//{"嗷","呜","啊","~"};
 		const char *dict[4] = {"嗷","呜","啊","~"};
 		char *pp = toBeastSound(srcdata,sizeof(srcdata),dict);
@@ -362,12 +390,27 @@ int main()
 		}
 	}
 
+	pthread_mutex_t mutex_lock=PTHREAD_MUTEX_INITIALIZER;
+	{
+		AUTOPTR(p,100); // p会在生命周期结束后释放
+		AUTOPTR_1 p1 = malloc(20);
+		DEBUG_PRINT_LOG("p=%p,p1=%p\n",p,p1);
+		AUTOPTR_MUTEX(mutex_lock);
+		DEBUG_PRINT_LOG("mutex_lock:%p\n",&mutex_lock);
+	}
+	pthread_mutex_destroy(&mutex_lock);
+
 	{
 		const char *tb = "酱雾纱雾雾酱酱酱纱匠雾匠酱匠酱纱酱酱酱雾酱匠纱匠酱雾雾酱纱酱雾纱纱酱酱纱纱纱雾匠纱匠酱雾纱雾雾酱雾匠酱匠纱匠雾纱雾酱酱酱纱酱雾雾雾酱酱纱纱纱雾匠雾雾匠雾纱雾雾匠雾纱雾匠纱匠雾酱纱匠匠酱纱酱雾纱纱酱匠纱纱纱雾匠雾纱酱雾纱雾雾酱纱匠纱匠纱匠雾纱纱匠雾酱纱酱雾纱纱酱雾纱纱纱雾匠纱雾雾雾纱雾雾酱纱匠纱匠纱匠雾纱纱雾纱酱纱酱雾雾纱纱酱纱纱纱雾匠雾匠纱雾纱雾雾匠纱雾雾匠纱匠雾纱纱酱匠酱纱酱雾雾纱酱匠纱纱纱雾匠纱纱纱雾纱雾雾匠纱雾匠匠纱匠雾纱雾酱匠酱纱酱雾纱纱酱匠纱纱纱雾雾雾雾纱雾纱雾雾酱纱雾纱匠纱匠雾酱雾酱酱酱纱酱雾纱酱纱匠纱纱纱雾雾匠匠酱雾纱雾雾匠酱匠纱匠纱匠雾酱酱酱雾酱纱酱雾纱酱纱雾纱纱纱雾雾酱酱雾雾纱雾雾酱纱酱雾匠纱匠雾酱酱纱纱酱纱酱雾雾纱雾纱纱纱纱雾雾匠酱纱雾纱雾雾酱纱酱雾匠纱匠雾酱雾酱酱酱纱酱雾纱匠酱匠纱纱纱雾匠纱纱纱雾纱雾雾匠雾酱匠匠纱匠雾酱匠纱匠酱纱酱雾纱匠纱匠纱纱纱雾雾纱纱纱雾纱雾雾匠匠匠匠匠纱匠雾纱纱纱匠酱纱酱雾纱雾酱匠纱纱纱雾匠雾纱酱雾纱雾雾酱雾酱匠匠纱匠雾纱纱酱酱酱纱酱雾纱雾酱纱纱纱纱雾雾雾雾雾雾纱雾雾匠雾匠雾匠纱匠雾酱雾酱匠酱纱酱雾纱雾纱匠纱纱纱雾纱匠酱雾匠雾酱匠匠雾酱酱酱雾匠匠酱匠雾匠匠酱酱纱酱酱匠雾纱纱纱雾雾纱纱酱雾纱雾雾酱纱酱酱匠纱匠雾纱雾酱酱酱纱酱雾雾雾纱酱纱纱纱雾匠雾纱酱雾纱雾雾酱雾匠匠匠纱匠雾酱雾雾雾酱纱酱雾纱纱酱匠纱纱纱雾雾纱纱匠雾纱雾雾酱雾雾酱匠纱匠雾纱纱酱纱酱纱酱雾雾纱酱雾纱纱纱雾雾纱纱雾雾纱雾雾酱雾匠纱匠纱匠雾纱雾纱纱酱纱酱雾雾纱纱纱纱纱纱雾匠雾雾雾雾纱雾雾酱纱纱匠匠纱匠雾酱纱匠雾酱纱酱雾雾纱纱匠纱纱纱雾匠纱纱雾雾纱雾雾匠纱雾匠匠纱匠雾纱雾酱匠酱纱酱雾纱纱酱匠纱纱纱雾雾雾雾纱雾纱雾雾匠雾匠匠匠纱匠雾酱雾纱雾酱纱酱雾纱雾雾纱纱纱纱雾雾雾酱纱雾纱雾雾匠雾匠酱匠纱匠雾酱雾雾纱酱纱酱雾纱雾酱酱纱纱纱雾雾雾雾纱雾纱雾雾酱纱酱纱匠纱匠雾纱纱纱纱酱纱酱雾纱雾纱酱纱纱纱雾纱匠酱雾匠匠匠纱纱酱雾酱酱雾酱纱雾酱纱雾酱纱酱雾纱雾纱雾纱纱纱雾雾雾雾雾雾纱雾雾匠雾匠匠匠纱匠雾酱雾酱匠酱纱酱雾纱纱酱酱匠纱匠匠纱纱雾匠匠雾匠纱酱匠纱匠匠纱匠雾酱匠纱酱酱纱酱雾纱酱匠纱纱纱纱雾雾匠雾雾雾纱雾雾匠匠酱酱匠纱匠雾酱匠雾酱酱纱酱雾酱匠匠雾匠";
 		char *ppp = fromBeastSound_2byte((const unsigned char *)tb,strlen(tb));
 		if(ppp!= NULL){
-			DEBUG_PRINT_LOG("%s\n",ppp);
+			DEBUG_PRINT_LOG("%p,%s\n",ppp,ppp);
 			free(ppp);
+		}
+
+		AUTOPTR_1 p = fromBeastSound_2byte((const unsigned char *)tb,strlen(tb));
+		if(p!= NULL){
+			DEBUG_PRINT_LOG("%p,%s\n",p,p);
 		}
 	}
 
