@@ -28,6 +28,26 @@ int UTF8_getc(const unsigned char *str, int len, unsigned long *val);
 */
 int UTF8_putc(unsigned char *str, int len, unsigned long value);
 
+/*
+ * Unicode to GBK
+ * 注意: 目标字符串长度必须大于等于 2 字节(16bit),有效数据为前2字节
+ * 
+ * @param unicode: Unicode 数据
+ * @param gbk: 目标字符串
+ * @return: 0, 失败返回负值
+*/
+int unicode2gbk(unsigned long unicode, const char *gbk);
+
+/*
+ * GBK to Unicode
+ * 注意: gbk长度必须大于等于 2 字节(16bit),有效数据为前2字节
+ * 
+ * @param gbk: GBK 字符串
+ * @param unicode: Unicode 数据
+ * @return: 0, 失败返回负值
+*/
+int gbk2unicode(const char *gbk, unsigned long *unicode);
+
 #ifdef __cplusplus
 }
 #endif

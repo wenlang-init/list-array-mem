@@ -414,6 +414,21 @@ int main()
 		}
 	}
 
+	{
+		const char *tb = "我";
+		unsigned long unicode;
+		if(0 < UTF8_getc((const unsigned char *)tb,strlen(tb),&unicode)){
+			DEBUG_PRINT_LOG("%04lx\n",unicode);
+			char gbk[3]={0};
+			if(0 <= unicode2gbk(unicode,(const char*)gbk)){
+				DEBUG_PRINT_LOG("%02x,%02x,%s\n",gbk[0]&0xff,gbk[1]&0xff,gbk);
+				if(0 <= gbk2unicode(gbk,&unicode)){
+					DEBUG_PRINT_LOG("%04lx\n",unicode);
+				}
+			}
+		}
+	}
+
 	destinyLog();
 
 	return 0;

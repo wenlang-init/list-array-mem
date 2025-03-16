@@ -1,4 +1,15 @@
 
+/*
+   |  Unicode符号范围      |  UTF-8编码方式
+ n |  (十六进制)           | (二进制)
+---+-----------------------+------------------------------------------------------
+ 1 | 0000 0000 - 0000 007F |                                              0xxxxxxx
+ 2 | 0000 0080 - 0000 07FF |                                     110xxxxx 10xxxxxx
+ 3 | 0000 0800 - 0000 FFFF |                            1110xxxx 10xxxxxx 10xxxxxx
+ 4 | 0001 0000 - 0010 FFFF |                   11110xxx 10xxxxxx 10xxxxxx 10xxxxxx
+ 5 | 0020 0000 - 03FF FFFF |          111110xx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+ 6 | 0400 0000 - 7FFF FFFF | 1111110x 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx 10xxxxxx
+*/
 
 /* UTF8 utilities */
 
@@ -12,6 +23,8 @@
  * -3 = subsequent characters not of the form 10xxxxxx
  * -4 = character encoded incorrectly (not minimal length).
  */
+
+ #include "unicode2gbktab.h"
 
 int UTF8_getc(const unsigned char *str, int len, unsigned long *val)
 {
@@ -174,4 +187,29 @@ int UTF8_putc(unsigned char *str, int len, unsigned long value)
         *str = (unsigned char)((value & 0x3f) | 0x80);
     }
     return 6;
+}
+
+int unicode2gbk(unsigned long unicode, char *gbk)
+{
+    unsigned short gbk16;
+    for(unsigned long i=0;i<Unic2GBKTabSize;i++){
+        if(unicode2gbkTab[i] == unicode){
+            gbk16 = i;
+            gbk[0] = (gbk16 & 0xFF00) >> 8;
+            gbk[1] = gbk16 & 0x00FF;
+            return 0;
+        }
+    }
+    return -1;
+}
+
+int gbk2unicode(char *gbk, unsigned long *unicode)
+{
+    unsigned short gbk16;
+    gbk16 = (gbk[0] << 8) | gbk[1];
+    if(gbk16 >= Unic2GBKTabSize){
+        return -1;
+    }
+    *unicode = unicode2gbkTab[gbk16];
+    return 0;
 }
