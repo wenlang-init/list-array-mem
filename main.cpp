@@ -6,13 +6,14 @@
 #include "mem/mem_management.h"
 #include "array/mArray_none.h"
 #include "fft/fft.h"
-#include "endian/endian.hpp"
+#include "method/endian.hpp"
 #include <math.h>
 #include <stdlib.h>
 #include "decode/autf8.h"
 #include "decode/base64.h"
 #include "decode/beastSound.h"
 #include <pthread.h>
+#include "decode/zhtopy.h"
 
 static void cleanup_func_free(void **data)
 {
@@ -426,6 +427,20 @@ int main()
 					DEBUG_PRINT_LOG("%04lx\n",unicode);
 				}
 			}
+		}
+	}
+
+	{
+		const char *tb = "我啊的aA0n🤣你是谁啊";
+		char * p=zh_to_py(tb);
+		if(p!= NULL){
+			DEBUG_PRINT_LOG("pinyin:%s\n",p);
+			free(p);
+		}
+		char *q=zh_to_jp(tb);
+		if(q!= NULL){
+			DEBUG_PRINT_LOG("jianpin:%s\n",q);
+			free(q);
 		}
 	}
 

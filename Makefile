@@ -96,6 +96,8 @@ INCDIRS 		+= ./mem
 INCDIRS 		+= ./cpp
 INCDIRS 		+= ./fft
 INCDIRS 		+= ./decode
+#INCDIRS 		+= ./method
+#INCDIRS 		+= ./sql
 # 源文件目录
 SRCDIRS			:= ./
 SRCDIRS 		+= ./array
@@ -105,6 +107,8 @@ SRCDIRS 		+= ./mem
 SRCDIRS 		+= ./cpp
 SRCDIRS 		+= ./fft
 SRCDIRS 		+= ./decode
+#SRCDIRS 		+= ./method
+#SRCDIRS 		+= ./sql
 
 # 头文件包含参数
 INCLUDE			:= $(patsubst %, -I %, $(INCDIRS))

@@ -14,7 +14,7 @@ char *toBeastSound_2byte(const unsigned char *utf8src, int len,const char *dict[
     AUTOPTRTYPENEWSIZE(unsigned long,unicode,sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
-        ret = UTF8_getc(utf8src+cnt, len, &val);
+        ret = UTF8_getc(utf8src+cnt, len-cnt, &val);
         if(ret < 0){
             printf("UTF8_getc error\n");
             //free(unicode);
@@ -83,7 +83,7 @@ char *fromBeastSound_2byte(const unsigned char *beastsound, int len,const char *
     AUTOPTRTYPENEWSIZE(unsigned long,unicode,sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
-        ret = UTF8_getc(beastsound+cnt, len, &unicode[unicodecnt]);
+        ret = UTF8_getc(beastsound+cnt, len-cnt, &unicode[unicodecnt]);
         if(ret < 0){
             printf("UTF8_getc error\n");
             //free(unicode);
@@ -177,7 +177,7 @@ char *toBeastSound_4byte(const unsigned char *utf8src, int len,const char *dict[
     AUTOPTRTYPENEWSIZE(unsigned long,unicode,sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
-        ret = UTF8_getc(utf8src+cnt, len, &val);
+        ret = UTF8_getc(utf8src+cnt, len-cnt, &val);
         if(ret < 0){
             printf("UTF8_getc error\n");
             //free(unicode);
@@ -237,7 +237,7 @@ char *fromBeastSound_4byte(const unsigned char *beastsound, int len,const char *
     AUTOPTRTYPENEWSIZE(unsigned long,unicode,sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
-        ret = UTF8_getc(beastsound+cnt, len, &unicode[unicodecnt]);
+        ret = UTF8_getc(beastsound+cnt, len-cnt, &unicode[unicodecnt]);
         if(ret < 0){
             printf("UTF8_getc error\n");
             //free(unicode);
@@ -372,7 +372,7 @@ char *fromBeastSound(const char *beastsound, int len,int *destsize)
     AUTOPTRTYPENEWSIZE(unsigned long,unicode,sizeof(unsigned long)*len);
     if(!unicode)return NULL;
     while(cnt < len){
-        ret = UTF8_getc(beastsound+cnt, len, &unicode[unicodecnt]);
+        ret = UTF8_getc(beastsound+cnt, len-cnt, &unicode[unicodecnt]);
         if(ret < 0){
             printf("UTF8_getc error\n");
             //free(unicode);
